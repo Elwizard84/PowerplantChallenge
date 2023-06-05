@@ -41,9 +41,15 @@ namespace Powerplant.Infrastructure.Services
             // Sort by cost
             costPerMWh = costPerMWh.OrderBy(p => p.Value).ToDictionary(kv => kv.Key, kv => kv.Value);
 
-            // Optimize
+            // Probe feasibility
+            var sortedPlants = costPerMWh.Keys.ToList();
             List<Tuple<PowerplantModel, decimal>> allocations = new();
-            OptimizePlantAllocations(allocations, costPerMWh.Keys.ToList(), load);
+
+            var nextPlant = sortedPlants.FirstOrDefault(p => p.Pmin <= load) ?? throw new FulfillmentException("Unable to fulfill");
+            AddAllocation(allocations, sortedPlants, nextPlant, load, out load);
+
+            // Optimize
+            OptimizePlantAllocations(allocations, sortedPlants, load);
 
             return Task.FromResult(allocations.Select(p => new ProductionPlanModel()
             {
@@ -58,29 +64,46 @@ namespace Powerplant.Infrastructure.Services
 
             if (nextPlant.Pmin <= load)
             {
-                var power = Math.Min(nextPlant.Pmax, load);
-                if (power == nextPlant.Pmax)
-                    powerPlants.Remove(nextPlant);
-
-                load -= power;
-                allocations.Add(new Tuple<PowerplantModel, decimal>(nextPlant, power));
+                AddAllocation(allocations, powerPlants, nextPlant, load, out load);
             }
             else
             {
                 // Pick a previous plant who's assignment can be modified
-                var lastPlant = allocations.LastOrDefault(p => p.Item2 > load && p.Item1.Pmin >= nextPlant.Pmin - load) ?? throw new FulfillmentException("Unable to fulfill");
+                var lastPlant = allocations.LastOrDefault() ?? throw new FulfillmentException("Unable to fulfill");
 
-                // Reduce load on lastPlant
-                allocations.Remove(lastPlant);
-                allocations.Add(new Tuple<PowerplantModel, decimal>(lastPlant.Item1, lastPlant.Item2 - (nextPlant.Pmin - load)));
+                // Correction
+                var correction = nextPlant.Pmin - load;
 
-                // Add nextPlant
-                allocations.Add(new Tuple<PowerplantModel, decimal>(nextPlant, nextPlant.Pmin));
-                load = 0;
+                if (lastPlant.Item2 - correction > lastPlant.Item1.Pmin)
+                {
+                    // Reduce load on lastPlant
+                    allocations.Remove(lastPlant);
+                    allocations.Add(new Tuple<PowerplantModel, decimal>(lastPlant.Item1, lastPlant.Item2 - correction));
+
+                    // Add nextPlant
+                    allocations.Add(new Tuple<PowerplantModel, decimal>(nextPlant, nextPlant.Pmin));
+                    load = 0;
+                }
+                else
+                {
+                    // Discard the no-good plant
+                    load += lastPlant.Item2;
+                    allocations.Remove(lastPlant);
+                }
             }
 
             if (load > 0)
                 OptimizePlantAllocations(allocations, powerPlants, load);
+        }
+
+        private void AddAllocation(List<Tuple<PowerplantModel, decimal>> allocations, List<PowerplantModel> powerPlants, PowerplantModel nextPlant, decimal load, out decimal remainingLoad)
+        {
+            var power = Math.Min(nextPlant.Pmax, load);
+            if (power == nextPlant.Pmax)
+                powerPlants.Remove(nextPlant);
+
+            remainingLoad = load - power;
+            allocations.Add(new Tuple<PowerplantModel, decimal>(nextPlant, power));
         }
     }
 }
