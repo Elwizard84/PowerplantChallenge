@@ -1,5 +1,6 @@
 
 using Powerplant.API.Config;
+using Powerplant.Infrastructure.Middleware;
 using Serilog;
 
 namespace Powerplant.API
@@ -21,6 +22,8 @@ namespace Powerplant.API
             builder.Logging.AddSerilog();
 
             var app = builder.Build();
+
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

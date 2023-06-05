@@ -28,23 +28,11 @@ namespace Powerplant.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] PowerplantRequest payload)
         {
-            try
-            {
-                return Ok(await _productionPlanService.CalculateProductionPlan(
-                    payload.PowerPlants,
-                    payload.Load,
-                    _mapper.Map<FuelInfoModel>(payload.FuelInfo)
-                    ));
-            }
-            catch (FulfillmentException ex)
-            {
-                return StatusCode(400, ex.Message);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while processing the request.");
-                return StatusCode(500, "An error occurred while processing the request.");
-            }
+            return Ok(await _productionPlanService.CalculateProductionPlan(
+                payload.PowerPlants,
+                payload.Load,
+                _mapper.Map<FuelInfoModel>(payload.FuelInfo)
+                ));
         }
     }
 }

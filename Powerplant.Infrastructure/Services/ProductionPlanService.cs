@@ -11,9 +11,9 @@ namespace Powerplant.Infrastructure.Services
 {
     public class ProductionPlanService : IProductionPlanService
     {
-        public Task<List<ProductionPlan>> CalculateProductionPlan(List<PowerplantModel> powerPlants, decimal load, FuelInfoModel fuelInfo)
+        public Task<List<ProductionPlanModel>> CalculateProductionPlan(List<PowerplantModel> powerPlants, decimal load, FuelInfoModel fuelInfo)
         {
-            List<ProductionPlan> result = new();
+            List<ProductionPlanModel> result = new();
 
             Dictionary<PowerplantModel, decimal> costPerMWh = new Dictionary<PowerplantModel, decimal>();
             decimal co2TonsPerMWh = 0.3M;
@@ -44,9 +44,9 @@ namespace Powerplant.Infrastructure.Services
             return Task.FromResult(SelectPowerPlants(costPerMWh.Keys.ToList(), load));
         }
 
-        private List<ProductionPlan> SelectPowerPlants(List<PowerplantModel> powerPlants, decimal load)
+        private List<ProductionPlanModel> SelectPowerPlants(List<PowerplantModel> powerPlants, decimal load)
         {
-            List<ProductionPlan> selectedPlants = new List<ProductionPlan>();
+            List<ProductionPlanModel> selectedPlants = new List<ProductionPlanModel>();
 
             while (load > 0 && powerPlants.Count > 0)
             {
@@ -59,9 +59,9 @@ namespace Powerplant.Infrastructure.Services
                 var plant = powerPlants.FirstOrDefault(p => (p.Pmin <= remainingLoad && remainingLoad <= p.Pmax) || p.Pmin <= remainingLoad) ?? throw new FulfillmentException("Unable to fulfill");
 
                 if (remainingLoad <= plant.Pmax)
-                    selectedPlants.Add(new ProductionPlan() { Name = plant.Name, P = remainingLoad });
+                    selectedPlants.Add(new ProductionPlanModel() { Name = plant.Name, P = remainingLoad });
                 else
-                    selectedPlants.Add(new ProductionPlan() { Name = plant.Name, P = plant.Pmax });
+                    selectedPlants.Add(new ProductionPlanModel() { Name = plant.Name, P = plant.Pmax });
 
                 powerPlants.Remove(plant);
             }
