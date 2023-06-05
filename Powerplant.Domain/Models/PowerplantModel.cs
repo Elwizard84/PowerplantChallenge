@@ -6,8 +6,8 @@ namespace Powerplant.Domain.Models
     {
         public string Name { get; set; }
         public PowerplantType Type { get; set; }
-        public double Efficiency { get; set; }
-        public int Pmin { get; set; }
-        public int Pmax { get; set; }
+        public decimal Efficiency { get; set; }
+        public decimal Pmin { get; set; }
+        public decimal Pmax { get; set; }
     }
 }

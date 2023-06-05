@@ -10,6 +10,6 @@ namespace Powerplant.Domain.Models
     public class ProductionPlan
     {
         public string Name { get; set; }
-        public double P { get; set; }
+        public decimal P { get; set; }
     }
 }

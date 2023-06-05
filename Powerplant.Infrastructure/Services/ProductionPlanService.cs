@@ -1,5 +1,6 @@
 ﻿using Powerplant.Domain.Interfaces;
 using Powerplant.Domain.Models;
+using Powerplant.Infrastructure.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,15 +11,62 @@ namespace Powerplant.Infrastructure.Services
 {
     public class ProductionPlanService : IProductionPlanService
     {
-        public Task<List<ProductionPlan>> CalculateProductionPlan(List<PowerplantModel> powerPlants, int load, FuelInfoModel fuelInfo)
+        public Task<List<ProductionPlan>> CalculateProductionPlan(List<PowerplantModel> powerPlants, decimal load, FuelInfoModel fuelInfo)
         {
-            List<ProductionPlan> result = new List<ProductionPlan>
-                {
-                    new ProductionPlan { Name = "Gas", P = 100 },
-                    new ProductionPlan { Name = "Wind", P = 200 }
-                };
+            List<ProductionPlan> result = new();
 
-            return Task.FromResult(result);
+            Dictionary<PowerplantModel, decimal> costPerMWh = new Dictionary<PowerplantModel, decimal>();
+            decimal co2TonsPerMWh = 0.3M;
+
+            powerPlants.ForEach(p =>
+            {
+                switch (p.Type)
+                {
+                    case Domain.Enums.PowerplantType.GasFired:
+                        costPerMWh.Add(p, (fuelInfo.GasEuroPerMWh / p.Efficiency) + (fuelInfo.Co2EuroPerTon * co2TonsPerMWh));
+                        break;
+                    case Domain.Enums.PowerplantType.TurboJet:
+                        costPerMWh.Add(p, fuelInfo.KerosineEuroPerMWh / p.Efficiency);
+                        break;
+                    case Domain.Enums.PowerplantType.WindTurbine:
+                        p.Pmax *= (fuelInfo.WindEfficiencyPercent / 100);
+                        if (p.Pmax > 0)
+                            costPerMWh.Add(p, 0);
+                        break;
+                    default:
+                        break;
+                }
+            });
+
+            // Sort by cost
+            costPerMWh = costPerMWh.OrderBy(p => p.Value).ToDictionary(kv => kv.Key, kv => kv.Value);
+
+            return Task.FromResult(SelectPowerPlants(costPerMWh.Keys.ToList(), load));
+        }
+
+        private List<ProductionPlan> SelectPowerPlants(List<PowerplantModel> powerPlants, decimal load)
+        {
+            List<ProductionPlan> selectedPlants = new List<ProductionPlan>();
+
+            while (load > 0 && powerPlants.Count > 0)
+            {
+                // Calculate the remaining load to be fulfilled
+                decimal remainingLoad = load - selectedPlants.Sum(p => p.P);
+                if (remainingLoad == 0)
+                    break;
+
+                // Find the cheapest usable plant
+                var plant = powerPlants.FirstOrDefault(p => (p.Pmin <= remainingLoad && remainingLoad <= p.Pmax) || p.Pmin <= remainingLoad) ?? throw new FulfillmentException("Unable to fulfill");
+
+                if (remainingLoad <= plant.Pmax)
+                    selectedPlants.Add(new ProductionPlan() { Name = plant.Name, P = remainingLoad });
+                else
+                    selectedPlants.Add(new ProductionPlan() { Name = plant.Name, P = plant.Pmax });
+
+                powerPlants.Remove(plant);
+            }
+
+            return selectedPlants;
         }
     }
 }

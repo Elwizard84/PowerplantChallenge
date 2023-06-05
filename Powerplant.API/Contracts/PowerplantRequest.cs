@@ -10,7 +10,7 @@ namespace Powerplant.API.Contracts
         public List<PowerplantModel> PowerPlants { get; set; }
 
         [JsonPropertyName("load")]
-        public int Load { get; set; }
+        public decimal Load { get; set; }
 
         [JsonPropertyName("fuels")]
         public FuelInfo FuelInfo { get; set; }

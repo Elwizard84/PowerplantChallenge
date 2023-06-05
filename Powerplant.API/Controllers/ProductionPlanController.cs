@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Powerplant.API.Contracts;
 using Powerplant.Domain.Interfaces;
 using Powerplant.Domain.Models;
+using Powerplant.Infrastructure.Exceptions;
 
 namespace Powerplant.API.Controllers
 {
@@ -34,6 +35,10 @@ namespace Powerplant.API.Controllers
                     payload.Load,
                     _mapper.Map<FuelInfoModel>(payload.FuelInfo)
                     ));
+            }
+            catch (FulfillmentException ex)
+            {
+                return StatusCode(400, ex.Message);
             }
             catch (Exception ex)
             {

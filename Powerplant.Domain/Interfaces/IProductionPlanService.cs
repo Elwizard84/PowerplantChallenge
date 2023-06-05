@@ -9,6 +9,6 @@ namespace Powerplant.Domain.Interfaces
 {
     public interface IProductionPlanService
     {
-        Task<List<ProductionPlan>> CalculateProductionPlan(List<PowerplantModel> powerPlants, int load, FuelInfoModel fuelInfo);
+        Task<List<ProductionPlan>> CalculateProductionPlan(List<PowerplantModel> powerPlants, decimal load, FuelInfoModel fuelInfo);
     }
 }
