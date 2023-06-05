@@ -29,7 +29,7 @@ namespace Powerplant.API.Controllers
         public async Task<IActionResult> Post([FromBody] PowerplantRequest payload)
         {
             return Ok(await _productionPlanService.CalculateProductionPlan(
-                payload.PowerPlants,
+                _mapper.Map<List<PowerplantModel>>(payload.PowerPlants),
                 payload.Load,
                 _mapper.Map<FuelInfoModel>(payload.FuelInfo)
                 ));

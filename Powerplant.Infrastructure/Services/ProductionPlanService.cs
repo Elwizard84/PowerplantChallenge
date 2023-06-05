@@ -39,7 +39,7 @@ namespace Powerplant.Infrastructure.Services
             });
 
             // Sort by cost
-            costPerMWh = costPerMWh.OrderBy(p => p.Value).ToDictionary(kv => kv.Key, kv => kv.Value);
+            costPerMWh = costPerMWh.OrderBy(p => p.Value).ThenBy(p => p.Key.Pmin).ToDictionary(kv => kv.Key, kv => kv.Value);
 
             // Probe feasibility
             var sortedPlants = costPerMWh.Keys.ToList();

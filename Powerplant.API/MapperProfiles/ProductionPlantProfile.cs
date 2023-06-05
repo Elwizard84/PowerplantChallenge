@@ -9,6 +9,7 @@ namespace Powerplant.API.MapperProfiles
         public ProductionPlantProfile()
         {
             CreateMap<FuelInfo, FuelInfoModel>();
+            CreateMap<Contracts.Powerplant, PowerplantModel>();
         }
     }
 }
