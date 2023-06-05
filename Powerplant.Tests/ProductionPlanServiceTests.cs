@@ -9,11 +9,13 @@ namespace Powerplant.Tests
 {
     public class ProductionPlanServiceTests
     {
-        [Fact]
-        public async void CalculateProductionPlan_ShouldReturn_3_Last_3684()
+        [Theory]
+        [InlineData("Payloads/payload1.json", 3, "gasfiredbig1", 368.4)]
+        [InlineData("Payloads/payload2.json", 2, "gasfiredbig2", 100)]
+        [InlineData("Payloads/payload3.json", 4, "gasfiredbig2", 338.4)]
+        public async void CalculateProductionPlan_ShouldReturn_Success(string filePath, int count, string plantName, decimal result)
         {
             // Arrange
-            string filePath = "Payloads/payload1.json";
             PowerplantRequest payload = ReadPayloadFromFile(filePath);
 
             MapperConfiguration mapperConfig = new MapperConfiguration(cfg =>
@@ -28,54 +30,8 @@ namespace Powerplant.Tests
             var productionPlans = await service.CalculateProductionPlan(mapper.Map<List<PowerplantModel>>(payload.PowerPlants), payload.Load, mapper.Map<FuelInfoModel>(payload.FuelInfo));
 
             // Assert
-            Assert.True(productionPlans.Count() == 3);
-            Assert.True(productionPlans.Single(p => p.Name == "gasfiredbig1").P == 368.4M);
-        }
-
-        [Fact]
-        public async void CalculateProductionPlan_ShouldReturn_2_Last_100()
-        {
-            // Arrange
-            string filePath = "Payloads/payload2.json";
-            PowerplantRequest payload = ReadPayloadFromFile(filePath);
-
-            MapperConfiguration mapperConfig = new MapperConfiguration(cfg =>
-            {
-                cfg.AddProfile(new ProductionPlantProfile());
-            });
-            IMapper mapper = new Mapper(mapperConfig);
-
-            var service = new ProductionPlanService();
-
-            // Act
-            var productionPlans = await service.CalculateProductionPlan(mapper.Map<List<PowerplantModel>>(payload.PowerPlants), payload.Load, mapper.Map<FuelInfoModel>(payload.FuelInfo));
-
-            // Assert
-            Assert.True(productionPlans.Count() == 2);
-            Assert.True(productionPlans.Single(p => p.Name == "gasfiredbig2").P == 100M);
-        }
-
-        [Fact]
-        public async void CalculateProductionPlan_ShouldReturn_4_Last_3384()
-        {
-            // Arrange
-            string filePath = "Payloads/payload3.json";
-            PowerplantRequest payload = ReadPayloadFromFile(filePath);
-
-            MapperConfiguration mapperConfig = new MapperConfiguration(cfg =>
-            {
-                cfg.AddProfile(new ProductionPlantProfile());
-            });
-            IMapper mapper = new Mapper(mapperConfig);
-
-            var service = new ProductionPlanService();
-
-            // Act
-            var productionPlans = await service.CalculateProductionPlan(mapper.Map<List<PowerplantModel>>(payload.PowerPlants), payload.Load, mapper.Map<FuelInfoModel>(payload.FuelInfo));
-
-            // Assert
-            Assert.True(productionPlans.Count() == 4);
-            Assert.True(productionPlans.Single(p => p.Name == "gasfiredbig2").P == 338.4M);
+            Assert.Equal(count, productionPlans.Count());
+            Assert.True(productionPlans.Single(p => p.Name == plantName).P == result);
         }
 
         private PowerplantRequest ReadPayloadFromFile(string filePath)
