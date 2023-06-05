@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Powerplant.API", "Powerplant.API\Powerplant.API.csproj", "{D8BA4116-8B52-4BE4-8CC9-494B3BFB0634}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Powerplant.API", "Powerplant.API\Powerplant.API.csproj", "{D8BA4116-8B52-4BE4-8CC9-494B3BFB0634}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Powerplant.Domain", "Powerplant.Domain\Powerplant.Domain.csproj", "{424C155E-C811-41FD-8DB8-786301D2634D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Powerplant.Infrastructure", "Powerplant.Infrastructure\Powerplant.Infrastructure.csproj", "{D4BAA7C7-A31D-4550-9BB7-EBF5A1395338}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{D8BA4116-8B52-4BE4-8CC9-494B3BFB0634}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D8BA4116-8B52-4BE4-8CC9-494B3BFB0634}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D8BA4116-8B52-4BE4-8CC9-494B3BFB0634}.Release|Any CPU.Build.0 = Release|Any CPU
+		{424C155E-C811-41FD-8DB8-786301D2634D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{424C155E-C811-41FD-8DB8-786301D2634D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{424C155E-C811-41FD-8DB8-786301D2634D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{424C155E-C811-41FD-8DB8-786301D2634D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4BAA7C7-A31D-4550-9BB7-EBF5A1395338}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4BAA7C7-A31D-4550-9BB7-EBF5A1395338}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4BAA7C7-A31D-4550-9BB7-EBF5A1395338}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4BAA7C7-A31D-4550-9BB7-EBF5A1395338}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

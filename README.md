@@ -4,6 +4,8 @@ From "Visual Studio", simply select the menu Debug -> Start Debugging.
 
 This will run the server app with HTTPS support on a port in the range 44300-44399 *(must be this range for IISExpress to actually enable SSL)*
 
+**NOTE: For convenience, we've disabled SSL by default and the project will run on port 8888**
+
 # How to Build & Run (Docker)
 
 * Build your Docker image by right-clicking on the Dockerfile in the Solution Explorer and selecting "Build Docker Image" or by using the Docker command-line interface.

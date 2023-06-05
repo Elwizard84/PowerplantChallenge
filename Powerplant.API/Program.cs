@@ -1,4 +1,5 @@
 
+using Powerplant.API.Config;
 using Serilog;
 
 namespace Powerplant.API
@@ -12,12 +13,10 @@ namespace Powerplant.API
             // Configure Serilog
             LoggerConfig.ConfigureLogger(builder);
 
-            // Add services to the container.
-
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+
+            // Configure services
+            ServiceManager.ConfigureServices(builder.Services);
 
             builder.Logging.AddSerilog();
 
