@@ -11,7 +11,7 @@ namespace Powerplant.Infrastructure.Services
 {
     public class ProductionPlanService : IProductionPlanService
     {
-        public Task<List<ProductionPlanModel>> CalculateProductionPlan(List<PowerplantModel> powerPlants, decimal load, FuelInfoModel fuelInfo)
+        public Task<IEnumerable<ProductionPlanModel>> CalculateProductionPlan(List<PowerplantModel> powerPlants, decimal load, FuelInfoModel fuelInfo)
         {
             List<ProductionPlanModel> result = new();
 
@@ -41,32 +41,46 @@ namespace Powerplant.Infrastructure.Services
             // Sort by cost
             costPerMWh = costPerMWh.OrderBy(p => p.Value).ToDictionary(kv => kv.Key, kv => kv.Value);
 
-            return Task.FromResult(SelectPowerPlants(costPerMWh.Keys.ToList(), load));
+            // Optimize
+            List<Tuple<PowerplantModel, decimal>> allocations = new();
+            OptimizePlantAllocations(allocations, costPerMWh.Keys.ToList(), load);
+
+            return Task.FromResult(allocations.Select(p => new ProductionPlanModel()
+            {
+                Name = p.Item1.Name,
+                P = p.Item2
+            }));
         }
 
-        private List<ProductionPlanModel> SelectPowerPlants(List<PowerplantModel> powerPlants, decimal load)
+        public void OptimizePlantAllocations(List<Tuple<PowerplantModel, decimal>> allocations, List<PowerplantModel> powerPlants, decimal load)
         {
-            List<ProductionPlanModel> selectedPlants = new List<ProductionPlanModel>();
+            var nextPlant = powerPlants.FirstOrDefault() ?? throw new FulfillmentException("Unable to fulfill");
 
-            while (load > 0 && powerPlants.Count > 0)
+            if (nextPlant.Pmin <= load)
             {
-                // Calculate the remaining load to be fulfilled
-                decimal remainingLoad = load - selectedPlants.Sum(p => p.P);
-                if (remainingLoad == 0)
-                    break;
+                var power = Math.Min(nextPlant.Pmax, load);
+                if (power == nextPlant.Pmax)
+                    powerPlants.Remove(nextPlant);
 
-                // Find the cheapest usable plant
-                var plant = powerPlants.FirstOrDefault(p => (p.Pmin <= remainingLoad && remainingLoad <= p.Pmax) || p.Pmin <= remainingLoad) ?? throw new FulfillmentException("Unable to fulfill");
+                load -= power;
+                allocations.Add(new Tuple<PowerplantModel, decimal>(nextPlant, power));
+            }
+            else
+            {
+                // Pick a previous plant who's assignment can be modified
+                var lastPlant = allocations.LastOrDefault(p => p.Item2 > load && p.Item1.Pmin >= nextPlant.Pmin - load) ?? throw new FulfillmentException("Unable to fulfill");
 
-                if (remainingLoad <= plant.Pmax)
-                    selectedPlants.Add(new ProductionPlanModel() { Name = plant.Name, P = remainingLoad });
-                else
-                    selectedPlants.Add(new ProductionPlanModel() { Name = plant.Name, P = plant.Pmax });
+                // Reduce load on lastPlant
+                allocations.Remove(lastPlant);
+                allocations.Add(new Tuple<PowerplantModel, decimal>(lastPlant.Item1, lastPlant.Item2 - (nextPlant.Pmin - load)));
 
-                powerPlants.Remove(plant);
+                // Add nextPlant
+                allocations.Add(new Tuple<PowerplantModel, decimal>(nextPlant, nextPlant.Pmin));
+                load = 0;
             }
 
-            return selectedPlants;
+            if (load > 0)
+                OptimizePlantAllocations(allocations, powerPlants, load);
         }
     }
 }
